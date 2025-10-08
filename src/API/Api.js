@@ -5,7 +5,11 @@ const BASE_URL = "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api";
 
 export async function register(firstName, lastName, email, password) {
   try {
+<<<<<<< Updated upstream
     const response = await fetch(`${BASE_URL}/users.register`, {
+=======
+    const response = await fetch(`${BASE_URL}/users/register`, {
+>>>>>>> Stashed changes
       method: "POST",
       headers: {
         "Content-Type": "application.json",
@@ -22,6 +26,10 @@ export async function register(firstName, lastName, email, password) {
       throw new Error(`Registration failed: ${response.message}`);
     }
     const result = await response.json();
+<<<<<<< Updated upstream
+=======
+    console.log(result);
+>>>>>>> Stashed changes
     return result;
   } catch (error) {
     console.error("Error during registration:", error);
