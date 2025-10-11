@@ -33,6 +33,10 @@ export function AuthProvider({ children }) {
       setError(error.message || "Authentication failed");
     }
   }
+  // async function logIn(email, password) {
+  //   setError("");
+  //   try {}
+  // }
 
   async function logout() {
     setToken(null);
