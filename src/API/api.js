@@ -1,14 +1,12 @@
 const BASE_URL = "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api";
 
-//register function does not provide a token on registration.
-//User must log in after registering to receive a token.
-
+// REGISTER (no token returned)
 export async function register(firstName, lastName, email, password) {
   try {
-    const response = await fetch(`${BASE_URL}/users.register`, {
+    const response = await fetch(`${BASE_URL}/users/register`, {
       method: "POST",
       headers: {
-        "Content-Type": "application.json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         firstName,
@@ -19,8 +17,12 @@ export async function register(firstName, lastName, email, password) {
     });
 
     if (!response.ok) {
-      throw new Error(`Registration failed: ${response.message}`);
+      const errorResult = await response.json();
+      throw new Error(
+        errorResult.message || `Registration failed: ${response.status}`
+      );
     }
+
     const result = await response.json();
     return result;
   } catch (error) {
@@ -29,10 +31,36 @@ export async function register(firstName, lastName, email, password) {
   }
 }
 
-//need to build login function to get token after registering
+// LOGIN (returns token)
+export async function login(email, password) {
+  try {
+    const response = await fetch(`${BASE_URL}/users/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
 
-// export async function login(email, password) {}
+    if (!response.ok) {
+      const errorResult = await response.json();
+      throw new Error(
+        errorResult.message || `Login failed: ${response.status}`
+      );
+    }
 
+    const result = await response.json();
+    return result; // should include { token }
+  } catch (error) {
+    console.error("Error during login:", error);
+    throw error;
+  }
+}
+
+// AUTHENTICATE (verify token)
 export async function authenticate(token) {
   try {
     const response = await fetch(`${BASE_URL}/users/me`, {
