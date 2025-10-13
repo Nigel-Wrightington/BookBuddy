@@ -46,6 +46,11 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // CHECK IF USER IS LOGGED IN LOGIC
+  function isLoggedIn() {
+    return !!token && verified;
+  }
+
   // LOGOUT
   function logout() {
     setToken(null);
@@ -69,6 +74,7 @@ export function AuthProvider({ children }) {
         error,
         registerUser,
         loginUser,
+        isLoggedIn,
         authenticateUser,
         logout,
       }}
