@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 export default function NotFound() {
   return (
-    <div ClassName="notfound">
+    <div className="notfound">
       {/* for css ; "notfound" */}
       <h1>Error 404 - Page Not Found</h1>
       <p className="error"> The page you're looking for does not exist!</p>
@@ -11,7 +11,7 @@ export default function NotFound() {
 
       <Link to="/books">
         {/* link tags for react components instead if html <a> */}
-        <button ClassName="return-btn">Return to Book Buddy</button>
+        <button className="return-btn">Return to Book Buddy</button>
       </Link>
     </div>
   );
