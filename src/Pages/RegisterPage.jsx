@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export default function RegisterPage() {
-  const { registerUser, error } = useAuth();
+  const { handleRegister, error } = useAuth();
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,8 +15,9 @@ export default function RegisterPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+
     try {
-      await registerUser(firstName, lastName, email, password);
+      await handleRegister(firstname, lastname, email, password);
       navigate("/login");
     } catch (err) {
       console.error("Registration failed:", err);
@@ -25,60 +27,64 @@ export default function RegisterPage() {
   }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <h2>Register</h2>
+    <div className="register-page">
+      <form onSubmit={handleSubmit} className="register-form">
+        <h2>Create an Account</h2>
 
-        {error && <div>{error}</div>}
+        {error && <p className="error-message">{error}</p>}
 
-        <div>
-          <label>First Name</label>
+        <label>
+          First Name
           <input
             type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            value={firstname}
+            onChange={(e) => setFirstname(e.target.value)}
             required
           />
-        </div>
+        </label>
 
-        <div>
-          <label>Last Name</label>
+        <label>
+          Last Name
           <input
             type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            value={lastname}
+            onChange={(e) => setLastname(e.target.value)}
             required
           />
-        </div>
+        </label>
 
-        <div>
-          <label>Email</label>
+        <label>
+          Email
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
+        </label>
 
-        <div>
-          <label>Password</label>
+        <label>
+          Password
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-        </div>
+        </label>
 
         <button type="submit" disabled={loading}>
           {loading ? "Registering..." : "Register"}
         </button>
 
-        <p>
+        <p className="redirect-text">
           Already have an account?{" "}
-          <button type="button" onClick={() => navigate("/login")}>
-            Log in
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => navigate("/login")}
+          >
+            Log In
           </button>
         </p>
       </form>
