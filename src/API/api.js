@@ -1,82 +1,89 @@
 const BASE_URL = "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api";
 
-// REGISTER (no token returned)
-export async function register(firstname, lastname, email, password) {
+/**
+ * === Helper function ===
+ * Handles fetch requests and common error handling.
+ */
+async function apiRequest(endpoint, options = {}) {
   try {
-    const response = await fetch(`${BASE_URL}/users/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        firstname,
-        lastname,
-        email,
-        password,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorResult = await response.json();
-      throw new Error(
-        errorResult.message || `Registration failed: ${response.status}`
-      );
-    }
-
-    const result = await response.json();
-    return result;
+    const response = await fetch(`${BASE_URL}${endpoint}`, options);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "API request failed");
+    return data;
   } catch (error) {
-    console.error("Error during registration:", error);
-    throw error;
+    console.error("API error:", error);
+    return { error: error.message };
   }
 }
 
-// LOGIN (returns token)
-export async function login(email, password) {
-  try {
-    const response = await fetch(`${BASE_URL}/users/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+/**
+ * === Books ===
+ */
 
-    if (!response.ok) {
-      const errorResult = await response.json();
-      throw new Error(
-        errorResult.message || `Login failed: ${response.status}`
-      );
-    }
-
-    const result = await response.json();
-    return result; // should include { token }
-  } catch (error) {
-    console.error("Error during login:", error);
-    throw error;
-  }
+// Fetch all books
+export async function fetchBooks() {
+  return await apiRequest("/books");
 }
 
-// AUTHENTICATE (verify token)
-export async function authenticate(token) {
-  try {
-    const response = await fetch(`${BASE_URL}/users/me`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Authentication failed: ${response.status}`);
-    }
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Error during authentication:", error);
-    throw error;
-  }
+// Fetch single book by ID
+export async function fetchBookById(id) {
+  return await apiRequest(`/books/${id}`);
+}
+
+/**
+ * === Authentication ===
+ */
+
+// Register new user
+export async function registerUser(firstname, lastname, email, password) {
+  return await apiRequest("/users/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ firstname, lastname, email, password }),
+  });
+}
+
+// Log in existing user
+export async function loginUser(email, password) {
+  return await apiRequest("/users/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+/**
+ * === Account / Reservations ===
+ */
+
+// Get the logged-in user's profile (requires token)
+export async function fetchUserProfile(token) {
+  return await apiRequest("/users/me", {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+// Reserve a book (requires token)
+export async function reserveBook(bookId, token) {
+  return await apiRequest("/reservations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ bookId }),
+  });
+}
+
+// Return a reserved book (requires token)
+export async function returnBook(reservationId, token) {
+  return await apiRequest(`/reservations/${reservationId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
