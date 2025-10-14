@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchBooks } from "../api";
+import { fetchBooks } from "../API/api";
 import { Link } from "react-router-dom";
 
 export default function BooksList() {
@@ -23,7 +23,7 @@ export default function BooksList() {
               <h3>{book.title}</h3>
             </Link>
             <p>Author: {book.author}</p>
-            <p>Available: {book.available ? "Y" : "N"}</p>
+            <p>Available: {book.available ? "Yes" : "No"}</p>
           </li>
         ))}
       </ul>
