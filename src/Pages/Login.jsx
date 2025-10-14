@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router";
 
 export default function Login() {
-  const { loginUser, error } = useAuth();
+  const { handleLogin, error } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +13,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      await loginUser(email, password);
+      await handleLogin(email, password);
       navigate("/");
     } catch (err) {
       console.error("Login failed:", err);
