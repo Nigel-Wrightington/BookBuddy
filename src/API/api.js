@@ -1,7 +1,7 @@
 const BASE_URL = "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api";
 
 // REGISTER (no token returned)
-export async function register(firstName, lastName, email, password) {
+export async function register(firstname, lastname, email, password) {
   try {
     const response = await fetch(`${BASE_URL}/users/register`, {
       method: "POST",
@@ -9,8 +9,8 @@ export async function register(firstName, lastName, email, password) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        firstName,
-        lastName,
+        firstname,
+        lastname,
         email,
         password,
       }),
