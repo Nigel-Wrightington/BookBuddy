@@ -1,70 +1,81 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import { register, login, authenticate } from "../API/api";
+import { registerUser, loginUser, authenticate } from "../API/api";
 
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  // === State ===
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState("");
 
-  // REGISTER
-  async function registerUser(firstName, lastName, email, password) {
+  // === REGISTER ===
+  const handleRegister = async (firstname, lastname, email, password) => {
     setError("");
     try {
-      await register(firstName, lastName, email, password);
-    } catch (error) {
-      setError(error.message || "Registration failed");
-      throw error;
+      const result = await registerUser(firstname, lastname, email, password);
+      if (result.error) throw new Error(result.error);
+      return result;
+    } catch (err) {
+      const msg = err.message || "Registration failed.";
+      console.error("Register error:", msg);
+      setError(msg);
+      throw err;
     }
-  }
+  };
 
-  // LOGIN
-  async function loginUser(email, password) {
+  // === LOGIN ===
+  const handleLogin = async (email, password) => {
     setError("");
     try {
-      const { token } = await login(email, password);
-      setToken(token);
-      localStorage.setItem("token", token);
+      const result = await loginUser(email, password);
+      if (result.error || !result.token)
+        throw new Error(result.error || "Login failed.");
+
+      setToken(result.token);
+      localStorage.setItem("token", result.token);
       setVerified(true);
-    } catch (error) {
-      setError(error.message || "Login failed");
-      throw error;
+      return result.token;
+    } catch (err) {
+      const msg = err.message || "Login failed.";
+      console.error("Login error:", msg);
+      setError(msg);
+      throw err;
     }
-  }
+  };
 
-  // AUTHENTICATE TOKEN
-  async function authenticateUser() {
+  // === AUTHENTICATE TOKEN ===
+  const verifyToken = async () => {
+    if (!token) return;
     setError("");
+
     try {
-      if (!token) throw new Error("No token found. Please log in.");
-      await authenticate(token);
+      const result = await authenticate(token);
+      if (result.error) throw new Error(result.error);
       setVerified(true);
-    } catch (error) {
-      setError(error.message || "Authentication failed");
+    } catch (err) {
+      const msg = err.message || "Authentication failed.";
+      console.error("Auth error:", msg);
+      setError(msg);
       setVerified(false);
     }
-  }
+  };
 
-  // CHECK IF USER IS LOGGED IN LOGIC
-  function isLoggedIn() {
-    return !!token && verified;
-  }
-
-  // LOGOUT
-  function logout() {
+  // === LOGOUT ===
+  const logout = () => {
     setToken(null);
     setVerified(false);
     localStorage.removeItem("token");
     setError("");
-  }
+  };
 
-  // Auto-verify token on page reload
+  // === STATUS ===
+  const isLoggedIn = () => !!token && verified;
+
+  // === Auto-verify on load ===
   useEffect(() => {
-    if (token) {
-      authenticateUser();
-    }
-  }, []);
+    if (token) verifyToken();
+  }, [token]);
 
   return (
     <AuthContext.Provider
@@ -72,11 +83,11 @@ export function AuthProvider({ children }) {
         token,
         verified,
         error,
-        registerUser,
-        loginUser,
-        isLoggedIn,
-        authenticateUser,
+        handleRegister,
+        handleLogin,
+        verifyToken,
         logout,
+        isLoggedIn,
       }}
     >
       {children}
@@ -84,10 +95,10 @@ export function AuthProvider({ children }) {
   );
 }
 
+// === Custom hook ===
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
+  if (!context)
+    throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
