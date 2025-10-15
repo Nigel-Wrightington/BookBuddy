@@ -10,6 +10,7 @@ export default function NotFound() {
       {/* for css ; "error" */}
 
       <Link to="/books">
+        {/* Back to books */}
         {/* link tags for react components instead if html <a> */}
         <button className="return-btn">Return to Book Buddy</button>
       </Link>
