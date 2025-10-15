@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { fetchBooks } from "../api";
 import { Link } from "react-router-dom";
 
 export default function BookList() {

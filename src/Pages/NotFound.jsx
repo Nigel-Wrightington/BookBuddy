@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-// for instant navbar navigation //
 
 export default function NotFound() {
   return (
