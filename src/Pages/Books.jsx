@@ -1,102 +1,104 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { fetchUserProfile, returnBook } from "../API/api";
+import { useNavigate, Link } from "react-router";
 
-export default function Account() {
-  const { token } = useAuth();
-  const [user, setUser] = useState(null);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+export default function Home() {
+  const { verified, logout } = useAuth();
   const navigate = useNavigate();
 
-  // === Fetch user profile ===
-  const loadProfile = async () => {
-    if (!token) return;
-    try {
-      const profile = await fetchUserProfile(token);
-      setUser(profile);
-      setMessage("");
-    } catch (err) {
-      console.error("Error loading profile:", err);
-      setError("Failed to load account information.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [books, setBooks] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // === Handle book return ===
-  const handleReturn = async (reservationId) => {
-    if (!token) return;
-    try {
-      const result = await returnBook(reservationId, token);
-      if (result.error) {
-        setMessage(result.error);
-      } else {
-        setMessage("Book returned successfully!");
-        await loadProfile();
-      }
-    } catch (err) {
-      console.error("Error returning book:", err);
-      setMessage("Something went wrong while returning the book.");
-    }
-  };
-
-  // === Load profile or redirect if not logged in ===
+  // === Fetch all books on mount ===
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    } else {
-      loadProfile();
+    async function fetchBooks() {
+      try {
+        const response = await fetch(
+          "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api/books"
+        );
+        const result = await response.json();
+        console.log("Fetched books:", result);
+        setBooks(result.books || []);
+        setFiltered(result.books || []);
+      } catch (err) {
+        console.error("Error fetching books:", err);
+        setError("Failed to load books. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [token, navigate]);
 
-  // === Conditional rendering ===
-  if (loading) return <p>Loading account info...</p>;
+    fetchBooks();
+  }, []);
+
+  // === Debounced search ===
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!query.trim()) {
+        setFiltered(books);
+      } else {
+        const results = books.filter((book) =>
+          book.title.toLowerCase().includes(query.toLowerCase())
+        );
+        setFiltered(results);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, books]);
+
+  // === Loading & error states ===
+  if (loading) return <p>Loading books...</p>;
   if (error) return <p>{error}</p>;
-  if (!token) return <p>Please log in to view your account.</p>;
-  if (!user) return <p>Loading your account...</p>;
-
-  const reservations = user.reservations || [];
 
   return (
-    <div className="account-page">
-      <header>
-        <h2>
-          Welcome, {user.firstname} {user.lastname}
-        </h2>
-        <p>Email: {user.email}</p>
-      </header>
+    <>
+      <div>
+        <h1>Book Catalog</h1>
 
-      <section className="reservations">
-        <h3>My Reservations</h3>
-        {reservations.length === 0 ? (
-          <p>You have no reservations.</p>
-        ) : (
-          <ul className="reservation-list">
-            {reservations.map(({ id, coverimage, title, author }) => (
-              <li key={id} className="reservation-item">
-                {coverimage && (
-                  <img
-                    src={coverimage}
-                    alt={title || "Book cover"}
-                    width="100"
-                    height="150"
-                  />
-                )}
-                <div className="reservation-info">
-                  <h4>{title}</h4>
-                  <p>{author}</p>
-                  <button onClick={() => handleReturn(id)}>Return</button>
-                </div>
-              </li>
-            ))}
-          </ul>
+        <div>
+          <input
+            type="text"
+            placeholder="Search books..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && <button onClick={() => setQuery("")}>Clear</button>}
+        </div>
+
+        {filtered.length === 0 && query && (
+          <p>No results found for "{query}".</p>
         )}
-      </section>
 
-      {message && <p className="status-message">{message}</p>}
-    </div>
+        <ul>
+          {filtered.map((book) => (
+            <li key={book.id}>
+              <Link to={`/books/${book.id}`}>
+                <strong>{book.title}</strong> — {book.author}
+              </Link>
+              <p>{book.available ? "Available" : "Checked Out"}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        {verified ? (
+          <>
+            <h1>Welcome to the website!</h1>
+            <button onClick={logout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <button type="button" onClick={() => navigate("/login")}>
+              Log in
+            </button>
+            <h1>Please log in to access the app.</h1>
+          </>
+        )}
+      </div>
+    </>
   );
 }

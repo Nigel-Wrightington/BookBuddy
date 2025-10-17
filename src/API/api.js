@@ -1,5 +1,10 @@
 const BASE_URL = "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api";
 
+async function apiRequest(endpoint, options = {}) {
+  const response = await fetch(`${BASE_URL}${endpoint}`, options);
+  return response.json();
+}
+
 // REGISTER (no token returned)
 export async function register(firstname, lastname, email, password) {
   try {
@@ -79,4 +84,35 @@ export async function authenticate(token) {
     console.error("Error during authentication:", error);
     throw error;
   }
+}
+
+// Get logged-in user's profile (requires token)
+export async function fetchUserProfile(token) {
+  return await apiRequest("/users/me", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+// Reserve a book (requires token)
+export async function reserveBook(bookId, token) {
+  return await apiRequest("/reservations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ bookId }),
+  });
+}
+// Return a reserved book (requires token)
+export async function returnBook(reservationId, token) {
+  return await apiRequest(`/reservations/${reservationId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
