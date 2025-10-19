@@ -1,27 +1,20 @@
-// === Base API URL for all requests ===
+// === Base API URL ===
 const BASE_URL = "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api";
 
 /**
- * === Universal API Request Helper ===
- * Safely handles fetch requests and JSON parsing.
- * Prevents crashes when responses have no body (e.g., DELETE).
+ * Generic API helper function
+ * Handles fetch requests, safely parses JSON, and manages errors.
  */
 async function apiRequest(endpoint, options = {}) {
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, options);
 
-    // Safely parse JSON only if response has content
-    let data = {};
-    try {
-      const text = await response.text();
-      data = text && text.trim() !== "" ? JSON.parse(text) : {};
-    } catch {
-      data = {};
-    }
+    // Safely parse JSON (even for empty responses)
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
 
-    // Throw an error if response is not OK (4xx or 5xx)
     if (!response.ok) {
-      throw new Error(data.message || `API error: ${response.status}`);
+      throw new Error(data.message || `API Error: ${response.status}`);
     }
 
     return data;
@@ -53,7 +46,7 @@ export async function loginUser(email, password) {
   });
 }
 
-// Verify token and get user info
+// Verify user token and return profile
 export async function authenticate(token) {
   return apiRequest("/users/me", {
     headers: { Authorization: `Bearer ${token}` },
@@ -64,13 +57,17 @@ export async function authenticate(token) {
    BOOK ENDPOINTS
    =============================== */
 
-// Fetch all books in the catalog
+// Get all books in the library
 export async function fetchBooks() {
   return apiRequest("/books");
 }
 
-// Fetch details for a specific book
+// Get details of a specific book
 export async function fetchBookById(id) {
+  if (!id) {
+    console.error("fetchBookById called without ID!");
+    return { error: "Invalid book ID" };
+  }
   return apiRequest(`/books/${id}`);
 }
 
@@ -80,29 +77,68 @@ export async function fetchBookById(id) {
 
 // Reserve a book (requires login)
 export async function reserveBook(bookId, token) {
-  return apiRequest("/reservations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ bookId }),
-  });
+  if (!bookId) {
+    console.error("reserveBook called without valid bookId!");
+    return { error: "Invalid book ID" };
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/reservations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      // ✅ The backend expects `bookId`
+      body: JSON.stringify({ bookId: Number(bookId) }),
+    });
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(data.message || `Reservation failed (${response.status})`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error reserving book:", error);
+    return { error: error.message };
+  }
 }
 
 // Return a reserved book (requires login)
 export async function returnBook(reservationId, token) {
-  return apiRequest(`/reservations/${reservationId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  if (!reservationId) {
+    console.error("returnBook called without valid reservationId!");
+    return { error: "Invalid reservation ID" };
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/reservations/${reservationId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      throw new Error(data.message || `Return failed (${response.status})`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error returning book:", error);
+    return { error: error.message };
+  }
 }
 
 /* ===============================
-   USER PROFILE ENDPOINT
+   USER PROFILE
    =============================== */
 
-// Fetch the logged-in user's info and reservations
+// Fetch current user’s profile and reservations
 export async function fetchUserProfile(token) {
   return apiRequest("/users/me", {
     headers: { Authorization: `Bearer ${token}` },
