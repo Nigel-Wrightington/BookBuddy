@@ -1,25 +1,26 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { fetchUserProfile, returnBook } from "../API/api";
 
-export default function AccountPage() {
+export default function Account() {
+  // Access the user's authentication token from context
   const { token } = useAuth();
+
+  // Component state for user data, messages, and loading status
   const [user, setUser] = useState(null);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  // === Fetch user profile ===
+  // Fetch the user's profile and reservations
   const loadProfile = async () => {
     if (!token) return;
-    setLoading(true);
     try {
       const profile = await fetchUserProfile(token);
       setUser(profile);
       setMessage("");
-      setError("");
     } catch (err) {
       console.error("Error loading profile:", err);
       setError("Failed to load account information.");
@@ -28,7 +29,7 @@ export default function AccountPage() {
     }
   };
 
-  // === Handle book return ===
+  // Handle returning a reserved book
   const handleReturn = async (reservationId) => {
     if (!token) return;
     try {
@@ -37,7 +38,7 @@ export default function AccountPage() {
         setMessage(result.error);
       } else {
         setMessage("Book returned successfully!");
-        await loadProfile(); // refresh user data
+        await loadProfile(); // Refresh the reservations list
       }
     } catch (err) {
       console.error("Error returning book:", err);
@@ -45,7 +46,7 @@ export default function AccountPage() {
     }
   };
 
-  // === Load profile or redirect if not logged in ===
+  // Load user info or redirect if not logged in
   useEffect(() => {
     if (!token) {
       navigate("/login");
@@ -54,7 +55,7 @@ export default function AccountPage() {
     }
   }, [token, navigate]);
 
-  // === Conditional rendering ===
+  // === Loading and error handling ===
   if (loading) return <p>Loading account info...</p>;
   if (error) return <p>{error}</p>;
   if (!token) return <p>Please log in to view your account.</p>;
@@ -63,17 +64,16 @@ export default function AccountPage() {
   const reservations = user.reservations || [];
 
   return (
-    <>
-      <div>
-        <h1>
-          <span>Welcome to your account page, </span>
-          {user.firstname} {user.lastname}
-        </h1>
-        <p>
-          The email you have on file with us is: <span>{user.email}</span>
-        </p>
-      </div>
+    <div className="account-page">
+      {/* User info header */}
+      <header>
+        <h2>
+          Welcome, {user.firstname} {user.lastname}
+        </h2>
+        <p>Email: {user.email}</p>
+      </header>
 
+      {/* List of reserved books */}
       <section className="reservations">
         <h3>My Reservations</h3>
         {reservations.length === 0 ? (
@@ -101,7 +101,8 @@ export default function AccountPage() {
         )}
       </section>
 
+      {/* Status message (success or error) */}
       {message && <p className="status-message">{message}</p>}
-    </>
+    </div>
   );
 }
