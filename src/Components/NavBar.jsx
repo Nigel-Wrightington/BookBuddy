@@ -1,31 +1,35 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function NavBar() {
-  // Access user info and logout function from context
   const { user, logout } = useAuth();
 
   return (
-    <nav className="nav">
-      {/* === Navigation Links === */}
-      <div className="nav-links">
-        <Link to="/">Home</Link>
+    <nav className="navbar">
+      <div className="nav-container">
+        {/* === Left side === */}
+        <div className="nav-links">
+          <NavLink to="/" end>
+            Home
+          </NavLink>
+          {user && <NavLink to="/account">My Account</NavLink>}
+        </div>
 
-        {/* If logged in, show account + logout options */}
-        {user ? (
-          <>
-            <Link to="/account">My Account</Link>
+        {/* === Right side === */}
+        <div className="nav-actions">
+          {user ? (
             <button onClick={logout} className="logout-btn">
               Log Out
             </button>
-          </>
-        ) : (
-          /* If not logged in, show login/register options */
-          <>
-            <Link to="/login">Log In</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
+          ) : (
+            <>
+              <NavLink to="/login">Log In</NavLink>
+              <NavLink to="/register" className="register-btn">
+                Register
+              </NavLink>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );
