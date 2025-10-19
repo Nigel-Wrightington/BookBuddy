@@ -1,104 +1,86 @@
+// === Base API URL for all requests ===
 const BASE_URL = "https://fsa-book-buddy-b6e748d1380d.herokuapp.com/api";
 
+/**
+ * === Universal API Request Helper ===
+ * Safely handles fetch requests and JSON parsing.
+ * Prevents crashes when responses have no body (e.g., DELETE).
+ */
 async function apiRequest(endpoint, options = {}) {
-  const response = await fetch(`${BASE_URL}${endpoint}`, options);
-  return response.json();
-}
-
-// REGISTER (no token returned)
-export async function register(firstname, lastname, email, password) {
   try {
-    const response = await fetch(`${BASE_URL}/users/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        firstname,
-        lastname,
-        email,
-        password,
-      }),
-    });
+    const response = await fetch(`${BASE_URL}${endpoint}`, options);
 
-    if (!response.ok) {
-      const errorResult = await response.json();
-      throw new Error(
-        errorResult.message || `Registration failed: ${response.status}`
-      );
+    // Safely parse JSON only if response has content
+    let data = {};
+    try {
+      const text = await response.text();
+      data = text && text.trim() !== "" ? JSON.parse(text) : {};
+    } catch {
+      data = {};
     }
 
-    const result = await response.json();
-    return result;
+    // Throw an error if response is not OK (4xx or 5xx)
+    if (!response.ok) {
+      throw new Error(data.message || `API error: ${response.status}`);
+    }
+
+    return data;
   } catch (error) {
-    console.error("Error during registration:", error);
-    throw error;
+    console.error("API Error:", error);
+    return { error: error.message };
   }
 }
 
-// LOGIN (returns token)
-export async function login(email, password) {
-  try {
-    const response = await fetch(`${BASE_URL}/users/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
+/* ===============================
+   AUTHENTICATION ENDPOINTS
+   =============================== */
 
-    if (!response.ok) {
-      const errorResult = await response.json();
-      throw new Error(
-        errorResult.message || `Login failed: ${response.status}`
-      );
-    }
-
-    const result = await response.json();
-    return result; // should include { token }
-  } catch (error) {
-    console.error("Error during login:", error);
-    throw error;
-  }
-}
-
-// AUTHENTICATE (verify token)
-export async function authenticate(token) {
-  try {
-    const response = await fetch(`${BASE_URL}/users/me`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Authentication failed: ${response.status}`);
-    }
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Error during authentication:", error);
-    throw error;
-  }
-}
-
-// Get logged-in user's profile (requires token)
-export async function fetchUserProfile(token) {
-  return await apiRequest("/users/me", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+// Register a new user
+export async function registerUser(firstname, lastname, email, password) {
+  return apiRequest("/users/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ firstname, lastname, email, password }),
   });
 }
-// Reserve a book (requires token)
+
+// Log in an existing user (returns token)
+export async function loginUser(email, password) {
+  return apiRequest("/users/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+// Verify token and get user info
+export async function authenticate(token) {
+  return apiRequest("/users/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+/* ===============================
+   BOOK ENDPOINTS
+   =============================== */
+
+// Fetch all books in the catalog
+export async function fetchBooks() {
+  return apiRequest("/books");
+}
+
+// Fetch details for a specific book
+export async function fetchBookById(id) {
+  return apiRequest(`/books/${id}`);
+}
+
+/* ===============================
+   RESERVATION ENDPOINTS
+   =============================== */
+
+// Reserve a book (requires login)
 export async function reserveBook(bookId, token) {
-  return await apiRequest("/reservations", {
+  return apiRequest("/reservations", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -107,12 +89,22 @@ export async function reserveBook(bookId, token) {
     body: JSON.stringify({ bookId }),
   });
 }
-// Return a reserved book (requires token)
+
+// Return a reserved book (requires login)
 export async function returnBook(reservationId, token) {
-  return await apiRequest(`/reservations/${reservationId}`, {
+  return apiRequest(`/reservations/${reservationId}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+/* ===============================
+   USER PROFILE ENDPOINT
+   =============================== */
+
+// Fetch the logged-in user's info and reservations
+export async function fetchUserProfile(token) {
+  return apiRequest("/users/me", {
+    headers: { Authorization: `Bearer ${token}` },
   });
 }
