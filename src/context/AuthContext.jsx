@@ -1,81 +1,69 @@
-import { createContext, useState, useContext, useEffect } from "react";
-import { register, login, authenticate } from "../API/api";
+import { createContext, useContext, useState, useEffect } from "react";
+import { registerUser, loginUser, authenticate } from "../API/api";
 
-export const AuthContext = createContext();
+// Create a shared context to store authentication info
+const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
+  // Store token and user info
   const [token, setToken] = useState(localStorage.getItem("token") || null);
-  const [verified, setVerified] = useState(false);
+  const [user, setUser] = useState(null);
   const [error, setError] = useState("");
 
-  // REGISTER
-  async function registerUser(firstName, lastName, email, password) {
-    setError("");
-    try {
-      await register(firstName, lastName, email, password);
-    } catch (error) {
-      setError(error.message || "Registration failed");
-      throw error;
+  // Register new user
+  async function handleRegister(firstname, lastname, email, password) {
+    const result = await registerUser(firstname, lastname, email, password);
+    if (result.error) setError(result.error);
+    return result;
+  }
+
+  // Log in existing user
+  async function handleLogin(email, password) {
+    const result = await loginUser(email, password);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      localStorage.setItem("token", result.token);
+      setToken(result.token);
+      setError("");
+    }
+    return result;
+  }
+
+  // Verify token and fetch user info
+  async function verifyUser() {
+    if (!token) return;
+    const result = await authenticate(token);
+    if (result.error) {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("token");
+    } else {
+      setUser(result);
     }
   }
 
-  // LOGIN
-  async function loginUser(email, password) {
-    setError("");
-    try {
-      const { token } = await login(email, password);
-      setToken(token);
-      localStorage.setItem("token", token);
-      setVerified(true);
-    } catch (error) {
-      setError(error.message || "Login failed");
-      throw error;
-    }
-  }
-
-  // AUTHENTICATE TOKEN
-  async function authenticateUser() {
-    setError("");
-    try {
-      if (!token) throw new Error("No token found. Please log in.");
-      await authenticate(token);
-      setVerified(true);
-    } catch (error) {
-      setError(error.message || "Authentication failed");
-      setVerified(false);
-    }
-  }
-
-  // CHECK IF USER IS LOGGED IN LOGIC
-  function isLoggedIn() {
-    return !!token && verified;
-  }
-
-  // LOGOUT
+  // Log out and clear saved data
   function logout() {
-    setToken(null);
-    setVerified(false);
     localStorage.removeItem("token");
-    setError("");
+    setUser(null);
+    setToken(null);
   }
 
-  // Auto-verify token on page reload
+  // Automatically verify user when app loads
   useEffect(() => {
-    if (token) {
-      authenticateUser();
-    }
-  }, []);
+    verifyUser();
+  }, [token]);
 
   return (
     <AuthContext.Provider
       value={{
         token,
-        verified,
+        user,
         error,
-        registerUser,
-        loginUser,
-        isLoggedIn,
-        authenticateUser,
+        handleRegister,
+        handleLogin,
+        verifyUser,
         logout,
       }}
     >
@@ -84,10 +72,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// Hook to access authentication state from any component
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return context;
+  return useContext(AuthContext);
 }
