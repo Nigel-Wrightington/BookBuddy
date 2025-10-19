@@ -1,45 +1,32 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // From Context //
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export default function Navbar() {
-  const { token, logout } = useAuth();
-  const navigate = useNavigate();
-  const isLoggedIn = !!token; // Boolean value T or F //
+export default function NavBar() {
+  // Access user info and logout function from context
+  const { user, logout } = useAuth();
 
   return (
-    <header>
-      <nav className="navbar">
-        {/* Home */}
-        <NavLink to="/books" className="brand">
-          Book Buddy - Home
-        </NavLink>
+    <nav className="nav">
+      {/* === Navigation Links === */}
+      <div className="nav-links">
+        <Link to="/">Home</Link>
 
-        {!isLoggedIn ? (
+        {/* If logged in, show account + logout options */}
+        {user ? (
           <>
-            <NavLink to="/register" className="nav-link">
-              Register
-            </NavLink>
-            <NavLink to="/login" className="nav-link">
-              Login
-            </NavLink>
-          </>
-        ) : (
-          <>
-            <NavLink to="/account" className="nav-link">
-              Account
-            </NavLink>
-            <button
-              className="nav-button"
-              onClick={() => {
-                logout();
-                navigate("/books");
-              }}
-            >
-              Logout
+            <Link to="/account">My Account</Link>
+            <button onClick={logout} className="logout-btn">
+              Log Out
             </button>
           </>
+        ) : (
+          /* If not logged in, show login/register options */
+          <>
+            <Link to="/login">Log In</Link>
+            <Link to="/register">Register</Link>
+          </>
         )}
-      </nav>
-    </header>
+      </div>
+    </nav>
   );
 }
