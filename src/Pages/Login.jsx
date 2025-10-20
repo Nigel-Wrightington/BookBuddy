@@ -1,65 +1,76 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router";
 
 export default function Login() {
-  const { loginUser, error } = useAuth();
-  const navigate = useNavigate();
+  // State for form fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
+  // Access auth functions and state from context
+  const { handleLogin, error } = useAuth();
+
+  // Hook to navigate after successful login
+  const navigate = useNavigate();
+
+  // Handle login form submission
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await loginUser(email, password);
-      navigate("/");
-    } catch (err) {
-      console.error("Login failed:", err);
-    } finally {
-      setLoading(false);
+    const result = await handleLogin(email, password);
+
+    // If login succeeded, go to account page
+    if (!result.error) {
+      navigate("/account");
+    } else {
+      console.error("Login failed:", result.error);
     }
   }
 
   return (
-    <div>
+    <div className="form-container">
+      <h2>Log In</h2>
+
+      {/* Show error message if login fails */}
+      {error && <p className="error-message">{error}</p>}
+
+      {/* Login form */}
       <form onSubmit={handleSubmit}>
-        <h2>Login</h2>
+        <label>Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-        {error && <div>{error}</div>}
+        <label>Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-
-        <p>
-          Do you not have an account?{" "}
-          <button type="button" onClick={() => navigate("/register")}>
-            Register
-          </button>
-        </p>
+        <button type="submit">Log In</button>
       </form>
+
+      {/* Optional quick link to registration */}
+      <p style={{ textAlign: "center", marginTop: "1rem" }}>
+        Don’t have an account?{" "}
+        <button
+          type="button"
+          onClick={() => navigate("/register")}
+          style={{
+            border: "none",
+            background: "none",
+            color: "#0077cc",
+            cursor: "pointer",
+            fontSize: "1rem",
+          }}
+        >
+          Register
+        </button>
+      </p>
     </div>
   );
 }
