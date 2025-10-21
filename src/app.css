@@ -1,169 +1,341 @@
-/* === Base Layout === */
+/* === Global Reset === */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f5f7;
-  color: #333;
+  font-family: "Inter", Arial, sans-serif;
+  background: #f6f8fa;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
 }
 
-/* === Navbar === */
-.nav {
-  background: #003366;
-  color: white;
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+.navbar {
+  background: #ffffff; /* clean white banner */
+  color: #1a1a1a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* === Left side (Home + Account) === */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1rem 2rem;
+}
+
+.brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #003366;
+  text-decoration: none;
+}
+
+.brand:hover {
+  color: #0055aa;
+}
+
+.nav-link {
+  font-weight: 600;
+  color: #003366;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #0077cc;
+}
+
+/* === Right side (Login / Register) === */
+.nav-right {
+  background: #003366; /* dark blue capsule area */
   padding: 1rem 2rem;
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.2rem;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
 }
 
-.nav a {
-  color: white;
+.nav-right .nav-link {
+  color: #ffffff;
+  font-weight: 600;
   text-decoration: none;
-  font-weight: 500;
 }
 
+.nav-right .nav-link:hover {
+  opacity: 0.85;
+}
+
+/* Register button */
+.register-btn {
+  background: #0077cc;
+  color: #ffffff;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.register-btn:hover {
+  background: #005fa3;
+}
+
+/* Logout button */
 .logout-btn {
-  background-color: #004080; /* darker navy */
+  background: #d14343;
+  color: #ffffff;
   border: none;
-  color: white;
-  padding: 0.4rem 0.9rem;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .logout-btn:hover {
-  background-color: #002952; /* even darker on hover */
+  background: #b42f2f;
 }
 
-
-/* === Main Container === */
+/* =========================================================
+   MAIN CONTAINER & BOOK LIST
+   ========================================================= */
 .main-container {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
-/* === Book List === */
+/* Book grid */
 .books-list ul {
   list-style: none;
   padding: 0;
+  margin: 1.5rem 0 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.25rem;
 }
 
 .books-list li {
-  background: white;
-  border-radius: 6px;
-  padding: 1rem;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.books-list li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Book cover image */
+.book-thumb {
+  width: 100%;
+  height: 240px; /* consistent height */
+  object-fit: cover; /* no stretching */
+  background: #eaeef2; /* fallback bg */
+  display: block;
+}
+
+/* Book details inside card */
+.book-meta {
+  padding: 0.8rem 1rem 1rem;
   text-align: center;
 }
 
-.books-list h3 {
-  color: #003366;
-  margin: 0.5rem 0;
+.book-title {
+  margin: 0.3rem 0 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0d1b2a;
+  min-height: 2.4em;
 }
 
-/* === Book Details === */
+.book-author {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #e7f0ff;
+  color: #0055aa;
+}
+
+/* =========================================================
+   BOOK DETAILS PAGE
+   ========================================================= */
 .book-details {
-  background: white;
-  padding: 2rem;
-  border-radius: 6px;
-  max-width: 600px;
+  background: #fff;
+  max-width: 700px;
   margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  text-align: center;
 }
 
 .book-details img {
-  max-width: 100%;
-  border-radius: 4px;
+  width: 220px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 8px;
   margin-bottom: 1rem;
 }
 
-.book-details button {
-  margin-top: 1rem;
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+button,
+.reserve-btn,
+.return-btn {
   padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 4px;
-  background: #0077cc;
-  color: white;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
+  color: #fff;
+  background: #0077cc;
+  transition: background 0.2s ease;
 }
 
-.book-details button:hover {
+button:hover,
+.reserve-btn:hover,
+.return-btn:hover {
   background: #005fa3;
 }
 
-/* === Account Page === */
+.return-btn {
+  background: #d14343;
+}
+
+.return-btn:hover {
+  background: #b42f2f;
+}
+
+/* =========================================================
+   FORMS
+   ========================================================= */
+.form-container {
+  background: #fff;
+  max-width: 420px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+form input {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+form button {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+/* =========================================================
+   ACCOUNT PAGE
+   ========================================================= */
 .account-page {
+  background: #fff;
   max-width: 800px;
   margin: 2rem auto;
-  background: white;
   padding: 2rem;
-  border-radius: 6px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 .reservation-item {
   display: flex;
   gap: 1rem;
-  background: #f8f8f8;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   margin-bottom: 1rem;
-  border-radius: 4px;
-  padding: 1rem;
+  padding: 0.75rem;
+  align-items: center;
 }
 
 .reservation-item img {
   width: 80px;
   height: 120px;
   object-fit: cover;
-}
-
-.reservation-info h4 {
-  margin: 0;
-  color: #003366;
-}
-
-/* === Forms (Login & Register) === */
-form {
-  max-width: 400px;
-  margin: 2rem auto;
-  background: white;
-  padding: 2rem;
   border-radius: 6px;
-}
-
-form label {
-  display: block;
-  margin-bottom: 0.3rem;
-  font-weight: bold;
-}
-
-form input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-form button {
-  width: 100%;
-  padding: 0.7rem;
-  border: none;
-  border-radius: 4px;
-  background: #0077cc;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-form button:hover {
-  background: #005fa3;
 }
 
 .status-message {
   margin-top: 1rem;
-  color: #007700;
   text-align: center;
+  color: #007700;
+  font-weight: 600;
+}
+
+/* =========================================================
+   NOT FOUND PAGE
+   ========================================================= */
+.notfound {
+  text-align: center;
+  padding: 2rem;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 768px) {
+  .books-list ul {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .book-thumb {
+    height: 200px;
+  }
+
+  .nav-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-left,
+  .nav-right {
+    justify-content: center;
+    border-radius: 0;
+    padding: 0.8rem 1rem;
+  }
 }

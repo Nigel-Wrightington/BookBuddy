@@ -1,21 +1,17 @@
+// src/Pages/BookDetails.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchBookById, reserveBook, returnBook } from "../API/api";
 import { useAuth } from "../context/AuthContext";
+import { fetchBookById, reserveBook, returnBook } from "../API/api";
 
 export default function BookDetails() {
-  // Get the book ID from the URL (e.g., /books/:id)
-  const { id } = useParams();
-
-  // Access user token from context
-  const { token } = useAuth();
-
-  // Local state for book data, status messages, and loading
-  const [book, setBook] = useState(null);
+  const { id } = useParams(); // Get book ID from URL
+  const { token } = useAuth(); // Access user token
+  const [book, setBook] = useState(null); // Book info
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Load book details when the page first renders or ID changes
+  // Fetch book details when the page loads or ID changes
   useEffect(() => {
     async function loadBook() {
       try {
@@ -28,27 +24,22 @@ export default function BookDetails() {
         setLoading(false);
       }
     }
-
     if (id) loadBook();
   }, [id]);
 
-  // Handle book reservation
+  // Reserve a book
   async function handleReserve() {
     if (!token) {
       setMessage("You must be logged in to reserve a book.");
       return;
     }
-
     try {
       const result = await reserveBook(book.id, token);
-
       if (result.error) {
         setMessage(result.error);
       } else {
         setMessage("Book reserved successfully!");
-
-        // Refresh the book data to reflect new availability
-        const updated = await fetchBookById(id);
+        const updated = await fetchBookById(id); // Refresh book status
         setBook(updated);
       }
     } catch (error) {
@@ -57,23 +48,19 @@ export default function BookDetails() {
     }
   }
 
-  // Handle book return
+  // Return a reserved book
   async function handleReturn() {
     if (!token) {
       setMessage("You must be logged in to return a book.");
       return;
     }
-
     try {
       const result = await returnBook(book.reservationId, token);
-
       if (result.error) {
         setMessage(result.error);
       } else {
         setMessage("Book returned successfully!");
-
-        // Refresh the book info after returning
-        const updated = await fetchBookById(id);
+        const updated = await fetchBookById(id); // Refresh book status
         setBook(updated);
       }
     } catch (error) {
@@ -82,14 +69,15 @@ export default function BookDetails() {
     }
   }
 
-  // Display loading or error states
+  // === Display states ===
   if (loading) return <p>Loading book details...</p>;
   if (!book) return <p>Book not found.</p>;
 
+  // === Page layout ===
   return (
     <div className="book-details">
-      {/* Title and image */}
       <h2>{book.title}</h2>
+
       {book.coverimage && (
         <img
           src={book.coverimage}
@@ -100,7 +88,6 @@ export default function BookDetails() {
         />
       )}
 
-      {/* Book info */}
       <p>
         <strong>Author:</strong> {book.author}
       </p>
@@ -111,7 +98,6 @@ export default function BookDetails() {
         <strong>Available:</strong> {book.available ? "Yes" : "No"}
       </p>
 
-      {/* Action buttons */}
       {book.available ? (
         <button
           onClick={handleReserve}
@@ -121,16 +107,11 @@ export default function BookDetails() {
           {token ? "Reserve Book" : "Log in to reserve"}
         </button>
       ) : (
-        <button
-          onClick={handleReturn}
-          disabled={!token}
-          className="return-btn"
-        >
+        <button onClick={handleReturn} disabled={!token} className="return-btn">
           {token ? "Return Book" : "Log in to return"}
         </button>
       )}
 
-      {/* Display status message (success/error) */}
       {message && <p className="status-message">{message}</p>}
     </div>
   );
