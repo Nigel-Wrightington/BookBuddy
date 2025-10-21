@@ -24,9 +24,7 @@ async function apiRequest(endpoint, options = {}) {
   }
 }
 
-/* ===============================
-   AUTHENTICATION ENDPOINTS
-   =============================== */
+/*  AUTHENTICATION ENDPOINTS */
 
 // Register a new user
 export async function registerUser(firstname, lastname, email, password) {
@@ -53,9 +51,7 @@ export async function authenticate(token) {
   });
 }
 
-/* ===============================
-   BOOK ENDPOINTS
-   =============================== */
+/*    BOOK ENDPOINTS    */
 
 // Get all books in the library
 export async function fetchBooks() {
@@ -71,9 +67,7 @@ export async function fetchBookById(id) {
   return apiRequest(`/books/${id}`);
 }
 
-/* ===============================
-   RESERVATION ENDPOINTS
-   =============================== */
+/*    RESERVATION ENDPOINTS    */
 
 // Reserve a book (requires login)
 export async function reserveBook(bookId, token) {
@@ -97,7 +91,9 @@ export async function reserveBook(bookId, token) {
     const data = text ? JSON.parse(text) : {};
 
     if (!response.ok) {
-      throw new Error(data.message || `Reservation failed (${response.status})`);
+      throw new Error(
+        data.message || `Reservation failed (${response.status})`
+      );
     }
 
     return data;
@@ -134,9 +130,7 @@ export async function returnBook(reservationId, token) {
   }
 }
 
-/* ===============================
-   USER PROFILE
-   =============================== */
+/*    USER PROFILE    */
 
 // Fetch current user’s profile and reservations
 export async function fetchUserProfile(token) {

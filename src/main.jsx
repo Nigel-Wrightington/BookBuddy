@@ -1,6 +1,7 @@
+// src/main.jsx
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./App.css";
+import "./app.css"; // <- make sure the case matches the real filename
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { BrowserRouter } from "react-router-dom";
